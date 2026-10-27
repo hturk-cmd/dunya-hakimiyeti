@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dünya Hâkimiyeti — İlk Prototip</title>
+  <style>
+    :root { color-scheme: dark; --bg:#0b1020; --panel:#141c2e; --line:#2b3852; --text:#eef3ff; --muted:#9aa9c5; --accent:#4ade80; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:radial-gradient(circle at top,#17233c,var(--bg) 55%); color:var(--text); font:16px/1.5 system-ui,Segoe UI,sans-serif; min-height:100vh; }
+    header { padding:22px clamp(16px,4vw,48px); border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .brand { font-weight:800; letter-spacing:.3px; font-size:clamp(18px,3vw,26px); }
+    .pill { color:var(--accent); border:1px solid #286b4a; border-radius:999px; padding:5px 10px; font-size:12px; }
+    main { width:min(1000px,100%); margin:32px auto; padding:0 16px 48px; display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    .card { background:rgba(20,28,46,.94); border:1px solid var(--line); border-radius:18px; padding:22px; box-shadow:0 16px 40px #0002; }
+    h1,h2 { margin-top:0; line-height:1.2; } h1 { font-size:clamp(28px,4vw,42px); } h2 { font-size:21px; }
+    p { color:var(--muted); }
+    label { display:block; margin:13px 0 6px; color:#cbd6ed; font-size:14px; }
+    input,select,button { width:100%; border-radius:10px; border:1px solid var(--line); padding:12px; font:inherit; color:var(--text); background:#0c1425; }
+    button { background:var(--accent); color:#062013; border:0; font-weight:800; cursor:pointer; margin-top:14px; }
+    button.secondary { background:#25334d; color:var(--text); border:1px solid var(--line); }
+    button:disabled { opacity:.5; cursor:not-allowed; }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .status { padding:12px; background:#0b1424; border:1px solid var(--line); border-radius:10px; margin-top:14px; white-space:pre-wrap; overflow-wrap:anywhere; }
+    .wide { grid-column:1/-1; }
+    .map-preview { min-height:180px; display:grid; place-items:center; border:1px dashed #41516f; border-radius:14px; background:linear-gradient(135deg,#101d30,#0b1424); text-align:center; padding:20px; }
+    .map-preview strong { display:block; font-size:22px; margin-bottom:8px; }
+    .small { font-size:12px; color:var(--muted); }
+    @media(max-width:720px) { main { grid-template-columns:1fr; margin-top:18px; } .wide { grid-column:auto; } header { align-items:flex-start; flex-direction:column; } }
+  </style>
+</head>
+<body>
+<header>
+  <div class="brand">🌍 Dünya Hâkimiyeti</div>
+  <span class="pill">İLK PROTOTİP · ÇEVRİM İÇİ KAYIT</span>
+</header>
+<main>
+  <section class="card">
+    <h1>Dünyaya hükmetmeye hazır mısın?</h1>
+    <p>Önce hesap oluştur veya giriş yap. Ardından oyuncu adını, rengini ve başlangıç ülkeni kaydet.</p>
+    <label for="projectUrl">Supabase Project URL</label>
+    <input id="projectUrl" placeholder="https://proje-kimligi.supabase.co" autocomplete="url">
+    <label for="anonKey">Supabase Publishable / anon key</label>
+    <input id="anonKey" placeholder="sb_publishable_... veya eski anon key" autocomplete="off">
+    <p class="small">Bu alanlar bu tarayıcı oturumu için kullanılır. Buraya service_role/secret key yazma.</p>
+    <div class="row">
+      <div><label for="email">E-posta</label><input id="email" type="email" autocomplete="email" placeholder="sen@ornek.com"></div>
+      <div><label for="password">Şifre</label><input id="password" type="password" autocomplete="current-password" minlength="8" placeholder="En az 8 karakter"></div>
+    </div>
+    <div class="row">
+      <button id="signup">Kayıt ol</button>
+      <button id="login" class="secondary">Giriş yap</button>
+    </div>
+    <button id="logout" class="secondary" hidden>Çıkış yap</button>
+    <div id="authStatus" class="status" role="status">Supabase bilgilerini girerek başla.</div>
+  </section>
+
+  <section class="card">
+    <h2>Oyuncu bilgileri</h2>
+    <p>Ülke seçimin ve rengin veritabanına kaydedilir. Aynı başlangıç ülkesi aynı oyun odasında iki kişiye verilemez.</p>
+    <label for="username">Oyuncu adı</label>
+    <input id="username" maxlength="24" placeholder="Örn. KuzeyKralı">
+    <div class="row">
+      <div>
+        <label for="color">Oyuncu rengi</label>
+        <select id="color">
+          <option value="#3b82f6">Mavi</option>
+          <option value="#ef4444">Kırmızı</option>
+          <option value="#22c55e">Yeşil</option>
+          <option value="#eab308">Sarı</option>
+          <option value="#a855f7">Mor</option>
+          <option value="#f97316">Turuncu</option>
+          <option value="#ec4899">Pembe</option>
+        </select>
+      </div>
+      <div>
+        <label for="country">Başlangıç ülkesi</label>
+        <select id="country">
+          <option value="">Önce bağlantıyı kontrol et</option>
+          <option value="FI">Finlandiya</option><option value="TR">Türkiye</option>
+          <option value="PK">Pakistan</option><option value="SE">İsveç</option>
+          <option value="NO">Norveç</option><option value="DE">Almanya</option>
+          <option value="IN">Hindistan</option><option value="JP">Japonya</option>
+          <option value="BR">Brezilya</option><option value="CA">Kanada</option>
+          <option value="AU">Avustralya</option><option value="EG">Mısır</option>
+        </select>
+      </div>
+    </div>
+    <button id="saveProfile">Ülke ve oyuncu bilgilerini kaydet</button>
+    <button id="refresh" class="secondary">Kayıtlı oyuncuları yenile</button>
+    <div id="profileStatus" class="status" role="status">Giriş yaptıktan sonra bilgilerini kaydedebilirsin.</div>
+  </section>
+
+  <section class="card wide">
+    <div class="map-preview">
+      <div><strong>🗺️ Dünya haritası sonraki aşama</strong>
+      <span>Bu ilk sürüm hesapları ve başlangıç ülkelerini kaydeder. Sonraki aşamada gerçek şehir sınırları, beyaz sahipsiz bölgeler, zar, sıra, hareket ve savaş eklenecek.</span></div>
+    </div>
+    <h2 style="margin-top:20px">Bu oyun odasındaki kayıtlı oyuncular</h2>
+    <div id="players" class="status">Henüz liste yüklenmedi.</div>
+    <p class="small">Not: Bu prototipte ülke seçimi kaydedilir; henüz şehir ele geçirme veya savaş işlemi yoktur.</p>
+  </section>
+</main>
+
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+  const $ = (id) => document.getElementById(id);
+  const ROOM_ID = "11111111-1111-1111-1111-111111111111";
+  let supabase = null;
+  let currentUser = null;
+
+  const savedUrl = sessionStorage.getItem("sb_url") || "";
+  const savedKey = sessionStorage.getItem("sb_key") || "";
+  $("projectUrl").value = savedUrl;
+  $("anonKey").value = savedKey;
+
+  function show(id, message) { $(id).textContent = message; }
+  function client() {
+    const url = $("projectUrl").value.trim().replace(/\/$/, "");
+    const key = $("anonKey").value.trim();
+    if (!url || !key) throw new Error("Önce Supabase Project URL ve Publishable/anon key gir.");
+    if (!/^https:\/\/[a-zA-Z0-9.-]+$/.test(url)) throw new Error("Supabase URL https:// ile başlamalı.");
+    sessionStorage.setItem("sb_url", url);
+    sessionStorage.setItem("sb_key", key);
+    if (!supabase) supabase = createClient(url, key);
+    return supabase;
+  }
+
+  async function restoreSession() {
+    try {
+      const db = client();
+      const { data, error } = await db.auth.getSession();
+      if (error) throw error;
+      currentUser = data.session?.user ?? null;
+      updateAuthUi();
+      if (currentUser) await refreshPlayers();
+    } catch (e) { show("authStatus", e.message); }
+  }
+  function updateAuthUi() {
+    $("logout").hidden = !currentUser;
+    show("authStatus", currentUser ? `Giriş yapıldı: ${currentUser.email}` : "Giriş yapılmadı.");
+  }
+
+  $("signup").addEventListener("click", async () => {
+    try {
+      const db = client();
+      const email = $("email").value.trim();
+      const password = $("password").value;
+      if (!email || password.length < 8) throw new Error("E-posta gir ve en az 8 karakterlik şifre kullan.");
+      const { data, error } = await db.auth.signUp({ email, password });
+      if (error) throw error;
+      currentUser = data.session?.user ?? null;
+      updateAuthUi();
+      show("authStatus", currentUser
+        ? "Hesap oluşturuldu ve giriş yapıldı."
+        : "Hesap oluşturuldu. E-posta doğrulaması açıksa gelen kutunu kontrol edip sonra giriş yap.");
+    } catch (e) { show("authStatus", e.message); }
+  });
+
+  $("login").addEventListener("click", async () => {
+    try {
+      const db = client();
+      const { data, error } = await db.auth.signInWithPassword({
+        email: $("email").value.trim(), password: $("password").value
+      });
+      if (error) throw error;
+      currentUser = data.user;
+      updateAuthUi();
+      await refreshPlayers();
+    } catch (e) { show("authStatus", e.message); }
+  });
+
+  $("logout").addEventListener("click", async () => {
+    try {
+      const db = client();
+      const { error } = await db.auth.signOut();
+      if (error) throw error;
+      currentUser = null; updateAuthUi();
+      show("profileStatus", "Çıkış yapıldı.");
+    } catch (e) { show("authStatus", e.message); }
+  });
+
+  $("saveProfile").addEventListener("click", async () => {
+    try {
+      const db = client();
+      const { data: sessionData } = await db.auth.getSession();
+      currentUser = sessionData.session?.user ?? null;
+      if (!currentUser) throw new Error("Önce kayıt ol veya giriş yap.");
+      const username = $("username").value.trim();
+      const country_code = $("country").value;
+      const color = $("color").value;
+      if (username.length < 2) throw new Error("Oyuncu adı en az 2 karakter olmalı.");
+      if (!country_code) throw new Error("Bir başlangıç ülkesi seç.");
+      const { error: profileError } = await db.from("profiles").upsert({
+        id: currentUser.id, username, color, updated_at: new Date().toISOString()
+      });
+      if (profileError) throw profileError;
+      const { error: joinError } = await db.from("game_players").upsert({
+        game_id: ROOM_ID, user_id: currentUser.id, country_code, color
+      }, { onConflict: "game_id,user_id" });
+      if (joinError) {
+        if (joinError.code === "23505") throw new Error("Bu ülkede bu oyun odasında zaten bir oyuncu var. Başka ülke seç.");
+        throw joinError;
+      }
+      show("profileStatus", "Kaydedildi! Oyuncu adın, rengin ve başlangıç ülken veritabanına yazıldı.");
+      await refreshPlayers();
+    } catch (e) { show("profileStatus", e.message); }
+  });
+
+  async function refreshPlayers() {
+    try {
+      const db = client();
+      const { data, error } = await db.from("game_players")
+        .select("country_code,color,profiles(username)")
+        .eq("game_id", ROOM_ID)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      const countries = { FI:"Finlandiya", TR:"Türkiye", PK:"Pakistan", SE:"İsveç", NO:"Norveç", DE:"Almanya", IN:"Hindistan", JP:"Japonya", BR:"Brezilya", CA:"Kanada", AU:"Avustralya", EG:"Mısır" };
+      if (!data?.length) { show("players", "Henüz oyuncu yok."); return; }
+      $("players").innerHTML = "";
+      for (const p of data) {
+        const line = document.createElement("div");
+        line.style.cssText = "display:flex;align-items:center;gap:10px;margin:8px 0";
+        const dot = document.createElement("span");
+        dot.style.cssText = `display:inline-block;width:13px;height:13px;border-radius:50%;background:${p.color}`;
+        const label = document.createElement("span");
+        label.textContent = `${p.profiles?.username ?? "Oyuncu"} — ${countries[p.country_code] ?? p.country_code}`;
+        line.append(dot, label);
+        $("players").append(line);
+      }
+    } catch (e) { show("players", "Oyuncu listesi yüklenemedi: " + e.message); }
+  }
+  $("refresh").addEventListener("click", refreshPlayers);
+  restoreSession();
+</script>
+</body>
+</html>
